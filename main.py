@@ -193,7 +193,7 @@ class GeminiTTSPlugin(Star):
 
         Args:
             text(string): 要逐字朗读的文本，可包含 Gemini point-in-time inline vocal tags。
-            style(string): 朗读语气或 style preset，可为空；为空时使用 natural preset。
+            style(string): 朗读语气或 style preset，可为空；为空时自动判断语气。
         """
         self._set_extra(event, _SKIP_AUTO)
         if not self.enabled or not self.tool_enabled:
