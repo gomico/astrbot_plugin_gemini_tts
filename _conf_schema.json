@@ -18,6 +18,7 @@
   },
   "prebuilt_voice": {
     "description": "预置 Studio voice",
+    "hint": "当 voice_id_override 非空，或选中了有效的自定义音色别名时，此项会被覆盖",
     "type": "string",
     "options": [
       "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede",
