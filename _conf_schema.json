@@ -1,0 +1,79 @@
+{
+  "enabled": {
+    "description": "启用插件",
+    "type": "bool",
+    "default": true
+  },
+  "api_key": {
+    "description": "Gemini API Key",
+    "type": "string",
+    "secret": true,
+    "default": ""
+  },
+  "model": {
+    "description": "Gemini TTS 模型",
+    "type": "string",
+    "options": ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts"],
+    "default": "gemini-3.8-flash-tts"
+  },
+  "prebuilt_voice": {
+    "description": "预置 Studio voice",
+    "type": "string",
+    "options": [
+      "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede",
+      "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba",
+      "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar",
+      "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird", "Zubenelgenubi",
+      "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat"
+    ],
+    "default": "Kore"
+  },
+  "voice_id_override": {
+    "description": "Voice Replication / Voice Design voice ID",
+    "hint": "支持 voice_... 或 voicekey_...，留空使用其他 voice 配置",
+    "type": "string",
+    "default": ""
+  },
+  "custom_voice_aliases": {
+    "description": "自定义音色别名映射",
+    "hint": "例如 {\"subaru\": \"voice_xxx\"}",
+    "type": "dict",
+    "default": {}
+  },
+  "custom_voice_alias": {
+    "description": "当前自定义音色别名",
+    "type": "string",
+    "default": ""
+  },
+  "style_templates": {
+    "description": "Style preset 模板",
+    "type": "object",
+    "items": {
+      "natural": {"description": "natural", "type": "string", "default": "natural, conversational, and relaxed"},
+      "cheerful": {"description": "cheerful", "type": "string", "default": "cheerful, bright, and friendly"},
+      "soft": {"description": "soft", "type": "string", "default": "soft, gentle, calm, and warm"},
+      "sad": {"description": "sad", "type": "string", "default": "sad, subdued, and emotionally restrained"},
+      "excited": {"description": "excited", "type": "string", "default": "excited, energetic, and enthusiastic"},
+      "whispering": {"description": "whispering", "type": "string", "default": "whispering softly"},
+      "sarcastic": {"description": "sarcastic", "type": "string", "default": "sarcastic, dry, and slightly teasing"},
+      "angry": {"description": "angry", "type": "string", "default": "angry, tense, and forceful"}
+    }
+  },
+  "tool_enabled": {
+    "description": "启用 gemini_tts LLM Tool",
+    "type": "bool",
+    "default": true
+  },
+  "auto_tts_enabled": {
+    "description": "启用概率性自动语音回复",
+    "type": "bool",
+    "default": false
+  },
+  "auto_tts_probability": {
+    "description": "自动语音概率",
+    "hint": "0.15 表示 15%",
+    "type": "float",
+    "slider": {"min": 0, "max": 1, "step": 0.01},
+    "default": 0.15
+  }
+}

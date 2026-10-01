@@ -1,0 +1,6 @@
+name: astrbot_plugin_gemini_tts
+display_name: Gemini 3.8 TTS
+desc: 直接调用 Gemini 3.8 TTS，支持 voice、style、inline vocal tags 和概率性自动语音回复。
+version: 0.1.0
+author: gomico
+repo: https://github.com/gomico/astrbot_plugin_gemini_tts
