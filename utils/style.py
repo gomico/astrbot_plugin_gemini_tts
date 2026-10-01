@@ -16,6 +16,14 @@ DEFAULT_STYLE_TEMPLATES = {
     "sarcastic": "sarcastic, dry, and slightly teasing",
     "angry": "angry, tense, and forceful",
 }
+DEFAULT_LANGUAGE_GUIDANCE = (
+    "Speak in the language of the input text.\n"
+    "For Mandarin Chinese, use Mainland Standard Mandarin (zh-CN), "
+    "not Taiwanese or Singaporean Mandarin.\n"
+    "For Japanese, use standard Japanese (Tokyo dialect).\n"
+    "For English, use British English with a Received Pronunciation accent.\n"
+    "Do not translate or switch languages unless explicitly requested."
+)
 
 
 def style_templates(value: Mapping[str, object] | None) -> dict[str, str]:
@@ -27,17 +35,38 @@ def style_templates(value: Mapping[str, object] | None) -> dict[str, str]:
     return result
 
 
+def _add_language_guidance(template: str, language_guidance: object) -> str:
+    guidance = (
+        DEFAULT_LANGUAGE_GUIDANCE
+        if language_guidance is None
+        else str(language_guidance).strip()
+    )
+    if not guidance:
+        return template
+    return f"{template.rstrip()}\n{guidance}" if template.strip() else guidance
+
+
 def resolve_style(
     style: str | None,
     templates: Mapping[str, str] | None = None,
     *,
     empty_behavior: str = "none",
+    language_guidance: object = None,
 ) -> str | None:
     """Resolve a preset while preserving unknown styles verbatim."""
+    resolved_templates = style_templates(templates)
     if style is None or not str(style).strip():
-        return style_templates(templates)["natural"] if empty_behavior == "natural" else None
+        return (
+            _add_language_guidance(resolved_templates["natural"], language_guidance)
+            if empty_behavior == "natural"
+            else None
+        )
     value = str(style)
-    return style_templates(templates)[value] if value in STYLE_PRESETS else value
+    return (
+        _add_language_guidance(resolved_templates[value], language_guidance)
+        if value in STYLE_PRESETS
+        else value
+    )
 
 
 def normalize_style_selection(value: object) -> str:

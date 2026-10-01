@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.1.0
+
+- 新增语言/方言指导配置，可在 WebUI 中编辑并追加到所有 style preset。
+- 默认语言指导覆盖大陆普通话、标准日语和英式 RP；配置为空时不追加语言指导。
+
 ## 1.0.1
 
 - 修复：语音发不出去（Gemini 返回 HTTP 400 `invalid_request`）。原因是 `google-genai` SDK 的 annotation 联合类型不识别 `speech_metadata`，会把语气序列化成 `UNKNOWN` 后发出。

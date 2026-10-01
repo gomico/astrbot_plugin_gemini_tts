@@ -85,6 +85,7 @@ class GeminiTTSPlugin(Star):
         if style_config is None:
             style_config = gemini_config.get("style_templates")
         self.styles = style_templates(style_config)
+        self.language_guidance = config.get("language_guidance")
         self.voice = resolve_voice(
             str(grouped_value(gemini_config, "prebuilt_voice", "Kore", "prebuilt_voice")),
             str(grouped_value(gemini_config, "voice_id_override", "", "voice_id_override")),
@@ -177,7 +178,12 @@ class GeminiTTSPlugin(Star):
             yield event.plain_result("Gemini TTS 插件未启用")
             return
 
-        style = resolve_style(requested_style, self.styles, empty_behavior="none")
+        style = resolve_style(
+            requested_style,
+            self.styles,
+            empty_behavior="none",
+            language_guidance=self.language_guidance,
+        )
         try:
             path = await self._synthesize(text, style)
             self._track_file(event, path)
@@ -195,7 +201,7 @@ class GeminiTTSPlugin(Star):
 
         Args:
             text(string): 要逐字朗读的文本，可包含 Gemini point-in-time inline vocal tags。
-            style(string): 朗读语气或 style preset，可为空；为空时自动判断语气。
+            style(string): 朗读语气或 style preset，可为空；为空时自动判断语气。预置 style 会追加 language_guidance 配置。
         """
         self._set_extra(event, _SKIP_AUTO)
         if not self.enabled or not self.tool_enabled:
@@ -205,10 +211,20 @@ class GeminiTTSPlugin(Star):
 
         try:
             if str(style or "").strip():
-                resolved_style = resolve_style(style, self.styles, empty_behavior="natural")
+                resolved_style = resolve_style(
+                    style,
+                    self.styles,
+                    empty_behavior="natural",
+                    language_guidance=self.language_guidance,
+                )
             else:
                 preset = await self._select_style(event, text)
-                resolved_style = resolve_style(preset, self.styles, empty_behavior="natural")
+                resolved_style = resolve_style(
+                    preset,
+                    self.styles,
+                    empty_behavior="natural",
+                    language_guidance=self.language_guidance,
+                )
             path = await self._synthesize(text, resolved_style)
             self._track_file(event, path)
             await event.send(event.chain_result([self._record(path, text)]))
@@ -247,7 +263,12 @@ class GeminiTTSPlugin(Star):
         self._set_extra(event, _AUTO_PROCESSING)
         try:
             preset = await self._select_style(event, transcript or "")
-            style = resolve_style(preset, self.styles, empty_behavior="natural")
+            style = resolve_style(
+                preset,
+                self.styles,
+                empty_behavior="natural",
+                language_guidance=self.language_guidance,
+            )
             path = await self._synthesize(transcript or "", style)
             record = self._record(path, transcript or "")
             if replace_plain_components(chain, record):

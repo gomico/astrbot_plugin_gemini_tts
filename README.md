@@ -18,10 +18,11 @@
 - `gemini.api_key` (Gemini API Key)：填写 AI Studio 创建的 API Key。
 - `gemini.model` (Gemini TTS 模型)：`gemini-3.8-flash-tts` 或 `gemini-3.8-flash-lite-tts`。
 - `gemini.prebuilt_voice` (预置 Studio voice)：30 个官方预置 voice 之一。
-- `gemini.voice_id_override` (Voice Replication / Voice Design voice ID)：已创建的 `voice_...` 或 `voicekey_...`。
+- `gemini.voice_id_override` (Voice Replication / Voice Design voice ID)：在 Google AI Studio 或使用 API 创建的 `voice_...` 或 `voicekey_...`。
 - `gemini.custom_voice_aliases` (自定义音色别名映射) 与 `gemini.custom_voice_alias` (当前自定义音色别名)：自定义别名映射和当前别名。
 - `style_templates` (Style preset 模板)：8 个 preset 的可编辑英文模板，key 为 `natural`、`cheerful`、`soft`、`sad`、`excited`、`whispering`、`sarcastic`、`angry`。
-- `jev.enabled`：开启后，自动语音使用 Jev 判断 style；关闭时使用当前会话主模型。
+- `language_guidance` (TTS 语言/方言指导)：多行文本配置，会追加到所有 style preset 之后。默认指导使用大陆普通话、标准日语（Tokyo dialect）和英式英语（RP）；如需其他语言或方言，可按需修改。留空等于不使用 `language_guidance`。
+- `jev.enabled`：开启后，自动语音使用 Jev 判断 style；关闭时使用当前会话主模型来判断。
 - `jev.base_url` / `jev.model` / `jev.api_key` / `jev.confidence_threshold`：Jev 接口配置，默认分别为 `https://api.typesafe.ai`、`jev-latest`、空、`0.7`。
 - `jev.styles`：参与 Jev 判断的 style key 列表，取值同 `style_templates` 的 8 个 key。留空时使用默认候选 `natural`、`cheerful`、`soft`、`sad`、`excited`、`angry`；`natural` 始终保留作低置信度回退。`whispering` 和 `sarcastic` 靠文字较难判断，默认不参与判断。
 - `auto_tts_enabled` (启用概率性自动语音回复) / `auto_tts_probability` (自动语音概率)：概率性自动把 Bot 文本回复转换为语音。
@@ -64,7 +65,7 @@ Tool 明确填写 `style` 时不进行判断，直接使用指定的 style。
 
 `<laugh>`、`<sigh>`、`<cough>`、`<breath>`、`<short pause>` 等是时间点 vocal event。即使正文是中文，Google 也建议使用英文 inline tags；持续的 whispering 等风格应放进 `style`，不要改写成 `<whispering>`。
 
-Google 当前没有把 `style` 限定为英语，但官方示例和推荐短语主要使用英语，因此本插件默认模板使用英文。
+Google 当前没有把 `style` 限定为英语，但官方示例和推荐短语主要使用英语，因此本插件的预置 style preset 和语言指导默认使用英语。
 
 ## Style 判断日志
 

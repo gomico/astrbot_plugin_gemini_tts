@@ -67,6 +67,12 @@
       "angry": {"description": "angry", "type": "string", "default": "angry, tense, and forceful"}
     }
   },
+  "language_guidance": {
+    "description": "TTS 语言/方言指导",
+    "hint": "会追加到所有 style preset；可按需修改。",
+    "type": "text",
+    "default": "Speak in the language of the input text.\nFor Mandarin Chinese, use Mainland Standard Mandarin (zh-CN), not Taiwanese or Singaporean Mandarin.\nFor Japanese, use standard Japanese (Tokyo dialect).\nFor English, use British English with a Received Pronunciation accent.\nDo not translate or switch languages unless explicitly requested."
+  },
   "tool_enabled": {
     "description": "启用 gemini_tts LLM Tool",
     "type": "bool",
