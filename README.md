@@ -9,7 +9,7 @@
 - 从 AstrBot 插件市场安装，或在 WebUI 的插件管理里填入仓库地址 `https://github.com/gomico/astrbot_plugin_gemini_tts`。
 - 手动安装：将本目录放入 AstrBot 的插件目录，安装 `requirements.txt`，然后在 WebUI 加载插件。
 
-依赖由 AstrBot 按 `requirements.txt` 安装（`google-genai==2.10.0`）。
+依赖由 AstrBot 按 `requirements.txt` 安装（`httpx>=0.28.1`，AstrBot Core 自带）。
 
 ## 配置
 

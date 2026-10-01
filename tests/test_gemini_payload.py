@@ -3,6 +3,8 @@ import base64
 from datetime import date
 from types import SimpleNamespace
 
+import pytest
+
 from services.gemini_tts import (
     GeminiTTSService,
     build_interaction_payload,
@@ -28,28 +30,82 @@ def test_payload_without_style_has_no_metadata():
 def test_service_writes_returned_wav_without_wrapping(tmp_path):
     expected = b"RIFF-test-wav"
     usage_logs = []
+    seen = {}
 
-    class Interactions:
-        async def create(self, **payload):
-            assert payload["response_format"]["mime_type"] == "audio/wav"
-            return SimpleNamespace(
-                output_audio=SimpleNamespace(data=base64.b64encode(expected).decode()),
-                usage=SimpleNamespace(total_input_tokens=100, total_output_tokens=200),
-            )
-
-    class Client:
-        aio = SimpleNamespace(interactions=Interactions())
+    async def poster(url, headers, payload):
+        seen["url"] = url
+        seen["headers"] = headers
+        seen["payload"] = payload
+        return 200, {
+            "steps": [
+                {
+                    "type": "model_output",
+                    "content": [
+                        {
+                            "type": "audio",
+                            "mime_type": "audio/wav",
+                            "data": base64.b64encode(expected).decode(),
+                        }
+                    ],
+                }
+            ],
+            "usage": {"total_input_tokens": 100, "total_output_tokens": 200},
+        }
 
     service = GeminiTTSService(
         "key",
         "gemini-3.8-flash-tts",
         tmp_path,
-        lambda _: Client(),
+        poster,
         lambda *args: usage_logs.append(args),
     )
     path = asyncio.run(service.synthesize("hello", None, "Kore"))
+
     assert path.read_bytes() == expected
     assert usage_logs == [("gemini-3.8-flash-tts", 100, 200, 0.00185)]
+    assert seen["url"] == "https://generativelanguage.googleapis.com/v1beta/interactions"
+    assert seen["headers"]["x-goog-api-key"] == "key"
+    assert seen["payload"]["response_format"]["mime_type"] == "audio/wav"
+    assert seen["payload"]["input"][0]["content"][0]["text"] == "hello"
+
+
+def test_service_reads_sdk_shaped_output_audio(tmp_path):
+    expected = b"RIFF-legacy"
+
+    async def poster(url, headers, payload):
+        return 200, {
+            "output_audio": {"data": base64.b64encode(expected).decode()},
+            "usage": {"total_input_tokens": 1, "total_output_tokens": 2},
+        }
+
+    service = GeminiTTSService("key", "gemini-3.8-flash-tts", tmp_path, poster)
+    path = asyncio.run(service.synthesize("hello", "soft", "Kore"))
+    assert path.read_bytes() == expected
+
+
+def test_service_reports_http_errors(tmp_path):
+    async def poster_400(url, headers, payload):
+        return 400, {"error": {"message": "invalid_request: bad annotation"}}
+
+    async def poster_500(url, headers, payload):
+        return 500, {"error": {"message": "backend down"}}
+
+    service = GeminiTTSService("key", "gemini-3.8-flash-tts", tmp_path, poster_400)
+    with pytest.raises(ValueError, match="bad annotation"):
+        asyncio.run(service.synthesize("hello", None, "Kore"))
+
+    service = GeminiTTSService("key", "gemini-3.8-flash-tts", tmp_path, poster_500)
+    with pytest.raises(RuntimeError, match="HTTP 500"):
+        asyncio.run(service.synthesize("hello", None, "Kore"))
+
+
+def test_service_requires_api_key(tmp_path):
+    async def poster(url, headers, payload):  # pragma: no cover - must not be called
+        raise AssertionError("poster should not be called without an API key")
+
+    service = GeminiTTSService("", "gemini-3.8-flash-tts", tmp_path, poster)
+    with pytest.raises(ValueError, match="API Key"):
+        asyncio.run(service.synthesize("hello", None, "Kore"))
 
 
 def test_usage_tokens_and_estimated_cost():

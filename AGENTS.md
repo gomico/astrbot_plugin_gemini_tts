@@ -36,9 +36,9 @@
 在仓库根目录运行：
 
 ```bash
-uv run --with pytest pytest -q
-python -m compileall -q main.py style_selectors
+uv run --with pytest --with httpx pytest -q
+python -m compileall -q main.py services style_selectors
 git diff --check
 ```
 
-修改配置项时同步更新 `_conf_schema.json` 和 `README.md`。改 `style` 相关行为时必须同步三处口径：`main.py` 里 `gemini_tts` 的 docstring、`skills/gemini-tts/SKILL.md`、`README.md`。`requirements.txt` 中的 `google-genai` 版本需与 AstrBot Core 的依赖约束兼容。
+修改配置项时同步更新 `_conf_schema.json` 和 `README.md`。改 `style` 相关行为时必须同步三处口径：`main.py` 里 `gemini_tts` 的 docstring、`skills/gemini-tts/SKILL.md`、`README.md`。`requirements.txt` 只声明 `httpx`（AstrBot Core 自带，`httpx[socks]>=0.28.1`）；不要重新引入 `google-genai`——AstrBot Core 按 `uv.lock` 装的是 2.10.0，那个版本的 annotation 联合类型不认 `speech_metadata`，会让请求 400。
