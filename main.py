@@ -191,6 +191,8 @@ class GeminiTTSPlugin(Star):
     async def gemini_tts(self, event: AstrMessageEvent, text: str = "", style: str = "") -> str:
         """使用 Gemini TTS 生成并发送语音。
 
+        用户要求发语音、朗读文本或指定语气朗读时调用；你自己想用语音代替文字回复时也可以调用。
+
         Args:
             text(string): 要逐字朗读的文本，可包含 Gemini point-in-time inline vocal tags。
             style(string): 朗读语气或 style preset，可为空；为空时自动判断语气。

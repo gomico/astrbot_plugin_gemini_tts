@@ -2,7 +2,12 @@
 
 ## 项目概览
 
-这是一个 AstrBot 插件，直接调用 Gemini TTS 生成语音。自动 TTS 或 LLM Tool 未指定 `style` 时，使用配置选择的 style selector：
+这是一个 AstrBot 插件，直接调用 Gemini TTS 生成语音。style 判断器（selector）用在两处：
+
+- 自动 TTS：每次都要判断。
+- LLM Tool：只在 `style` 未指定时判断。`skills/gemini-tts/SKILL.md` 要求模型每次调用都自行给出 `style`，所以这条路径正常不会触发。
+
+`style` 判断器的选择：
 
 - `jev.enabled=true`：使用 `JevStyleSelector`。
 - `jev.enabled=false`：使用当前会话主模型的 `MainModelStyleSelector`。
@@ -13,6 +18,8 @@
 - `_conf_schema.json`：AstrBot WebUI 配置 schema，必须保持合法 JSON。
 - `style_selectors/jev.py`：Jev 请求、候选 style 和置信度回退逻辑。
 - `style_selectors/main_model.py`：主模型 style 判断。
+- `skills/gemini-tts/SKILL.md`：喂给 LLM 的 `gemini_tts` 调用规则（何时调用、style 取值、失败处理），是 style 行为的对外出口之一。AstrBot 的插件技能用 `skills/<子目录>/` 的目录名作技能名，frontmatter 里的 `name` 会被忽略。
+- `services/gemini_tts.py`：Gemini 请求与音频落盘。
 - `utils/style.py`：style preset 和模板处理。
 - `tests/`：单元测试。
 
@@ -29,9 +36,9 @@
 在仓库根目录运行：
 
 ```bash
-pytest -q
+uv run --with pytest pytest -q
 python -m compileall -q main.py style_selectors
 git diff --check
 ```
 
-修改配置项时同步更新 `_conf_schema.json` 和 `README.md`。`requirements.txt` 中的 `google-genai` 版本需与 AstrBot Core 的依赖约束兼容。
+修改配置项时同步更新 `_conf_schema.json` 和 `README.md`。改 `style` 相关行为时必须同步三处口径：`main.py` 里 `gemini_tts` 的 docstring、`skills/gemini-tts/SKILL.md`、`README.md`。`requirements.txt` 中的 `google-genai` 版本需与 AstrBot Core 的依赖约束兼容。
