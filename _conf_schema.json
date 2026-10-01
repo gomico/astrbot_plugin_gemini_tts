@@ -4,47 +4,54 @@
     "type": "bool",
     "default": true
   },
-  "api_key": {
-    "description": "Gemini API Key",
-    "type": "string",
-    "secret": true,
-    "default": ""
-  },
-  "model": {
-    "description": "Gemini TTS 模型",
-    "type": "string",
-    "options": ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts"],
-    "default": "gemini-3.8-flash-tts"
-  },
-  "prebuilt_voice": {
-    "description": "预置 Studio voice",
-    "hint": "当 voice_id_override 非空，或选中了有效的自定义音色别名时，此项会被覆盖",
-    "type": "string",
-    "options": [
-      "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede",
-      "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba",
-      "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar",
-      "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird", "Zubenelgenubi",
-      "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat"
-    ],
-    "default": "Kore"
-  },
-  "voice_id_override": {
-    "description": "Voice Replication / Voice Design voice ID",
-    "hint": "支持 voice_... 或 voicekey_...，留空使用其他 voice 配置",
-    "type": "string",
-    "default": ""
-  },
-  "custom_voice_aliases": {
-    "description": "自定义音色别名映射",
-    "hint": "例如 {\"subaru\": \"voice_xxx\"}",
-    "type": "dict",
-    "default": {}
-  },
-  "custom_voice_alias": {
-    "description": "当前自定义音色别名",
-    "type": "string",
-    "default": ""
+  "gemini": {
+    "description": "Gemini TTS 配置",
+    "type": "object",
+    "hint": "Gemini API、模型、音色和 style 模板配置",
+    "items": {
+      "api_key": {
+        "description": "Gemini API Key",
+        "type": "string",
+        "secret": true,
+        "default": ""
+      },
+      "model": {
+        "description": "Gemini TTS 模型",
+        "type": "string",
+        "options": ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts"],
+        "default": "gemini-3.8-flash-tts"
+      },
+      "prebuilt_voice": {
+        "description": "预置 Studio voice",
+        "hint": "当 voice_id_override 非空，或选中了有效的自定义音色别名时，此项会被覆盖",
+        "type": "string",
+        "options": [
+          "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede",
+          "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba",
+          "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar",
+          "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird", "Zubenelgenubi",
+          "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat"
+        ],
+        "default": "Kore"
+      },
+      "voice_id_override": {
+        "description": "Voice Replication / Voice Design voice ID",
+        "hint": "支持 voice_... 或 voicekey_...，留空使用其他 voice 配置",
+        "type": "string",
+        "default": ""
+      },
+      "custom_voice_aliases": {
+        "description": "自定义音色别名映射",
+        "hint": "例如 {\"subaru\": \"voice_xxx\"}",
+        "type": "dict",
+        "default": {}
+      },
+      "custom_voice_alias": {
+        "description": "当前自定义音色别名",
+        "type": "string",
+        "default": ""
+      }
+    }
   },
   "style_templates": {
     "description": "Style preset 模板",
@@ -76,5 +83,49 @@
     "type": "float",
     "slider": {"min": 0, "max": 1, "step": 0.01},
     "default": 0.15
+  },
+  "jev": {
+    "description": "Jev Style 判断配置",
+    "type": "object",
+    "hint": "自动语音使用 Jev 判断 style 的配置",
+    "items": {
+      "enabled": {
+        "description": "使用 Jev 判断自动语音 style",
+        "hint": "关闭时使用当前会话主模型判断 style；开启后使用 Jev。需要单独配置 Jev API Key。",
+        "type": "bool",
+        "default": false
+      },
+      "base_url": {
+        "description": "Jev Base URL",
+        "hint": "默认使用 TypeSafe 官方接口；也可填写兼容 Jev API 的服务地址。",
+        "type": "string",
+        "default": "https://api.typesafe.ai"
+      },
+      "model": {
+        "description": "Jev 模型",
+        "hint": "TypeSafe 官方默认模型为 jev-latest。",
+        "type": "string",
+        "default": "jev-latest"
+      },
+      "api_key": {
+        "description": "Jev API Key",
+        "type": "string",
+        "secret": true,
+        "default": ""
+      },
+      "confidence_threshold": {
+        "description": "Jev style 置信度阈值",
+        "hint": "低于此阈值时回退到 natural。默认 0.7。",
+        "type": "float",
+        "slider": {"min": 0, "max": 1, "step": 0.01},
+        "default": 0.7
+      },
+      "styles": {
+        "description": "参与 Jev 判断的 style",
+        "hint": "填写 style key 列表：natural、cheerful、soft、sad、excited、whispering、sarcastic、angry。natural 会始终保留作低置信度回退。whispering、sarcastic 靠文字较难判断，不建议加入 Jev 判断。留空使用默认候选（不含 whispering、sarcastic）。",
+        "type": "list",
+        "default": ["natural", "cheerful", "soft", "sad", "excited", "angry"]
+      }
+    }
   }
 }
