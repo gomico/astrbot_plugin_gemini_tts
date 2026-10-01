@@ -74,8 +74,25 @@ class GeminiTTSPlugin(Star):
             str(config.get("api_key", "")),
             model,
             _temp_dir(),
+            usage_logger=self._log_usage,
         )
         self.style_selector = MainModelStyleSelector(context)
+
+    @staticmethod
+    def _log_usage(
+        model: str,
+        input_tokens: int | None,
+        output_tokens: int | None,
+        estimated_price_usd: float | None,
+    ) -> None:
+        price = "unknown" if estimated_price_usd is None else f"{estimated_price_usd:.8f}"
+        logger.info(
+            "Gemini TTS usage: model=%s input_tokens=%s output_tokens=%s estimated_price_usd=%s",
+            model,
+            input_tokens if input_tokens is not None else "unknown",
+            output_tokens if output_tokens is not None else "unknown",
+            price,
+        )
 
     @staticmethod
     def _extra(event: AstrMessageEvent, key: str, default: Any = False) -> Any:

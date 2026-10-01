@@ -6,8 +6,17 @@ import inspect
 import tempfile
 import uuid
 from collections.abc import Callable, Mapping
+from datetime import date
 from pathlib import Path
 from typing import Any
+
+
+UsageLogger = Callable[[str, int | None, int | None, float | None], None]
+_PRICE_CHANGE_DATE = date(2027, 1, 1)
+_PRICES_USD_PER_MILLION = {
+    "gemini-3.8-flash-tts": ((0.50, 9.00), (1.00, 18.00)),
+    "gemini-3.8-flash-lite-tts": ((0.50, 6.00), (1.00, 12.00)),
+}
 
 
 def build_interaction_input(text: str, style: str | None) -> list[dict[str, Any]]:
@@ -29,6 +38,52 @@ def build_interaction_payload(
         "response_format": {"type": "audio", "mime_type": "audio/wav"},
         "generation_config": {"speech_config": [{"voice": voice}]},
     }
+
+
+def _field(value: Any, name: str) -> Any:
+    return value.get(name) if isinstance(value, Mapping) else getattr(value, name, None)
+
+
+def interaction_token_usage(response: Any) -> tuple[int | None, int | None]:
+    usage = _field(response, "usage")
+    if usage is None:
+        return None, None
+
+    def token_count(*names: str) -> int | None:
+        for name in names:
+            value = _field(usage, name)
+            if value is None:
+                continue
+            try:
+                count = int(value)
+            except (TypeError, ValueError):
+                continue
+            if count >= 0:
+                return count
+        return None
+
+    return (
+        token_count("total_input_tokens", "input_tokens"),
+        token_count("total_output_tokens", "output_tokens"),
+    )
+
+
+def estimate_cost_usd(
+    model: str,
+    input_tokens: int | None,
+    output_tokens: int | None,
+    *,
+    as_of: date | None = None,
+) -> float | None:
+    prices = _PRICES_USD_PER_MILLION.get(model)
+    if prices is None or input_tokens is None or output_tokens is None:
+        return None
+    input_price, output_price = prices[1 if (as_of or date.today()) >= _PRICE_CHANGE_DATE else 0]
+    return round(
+        input_tokens * input_price / 1_000_000
+        + output_tokens * output_price / 1_000_000,
+        8,
+    )
 
 
 def _audio_data(response: Any) -> bytes:
@@ -56,11 +111,13 @@ class GeminiTTSService:
         model: str,
         temp_dir: str | Path | None = None,
         client_factory: Callable[[str], Any] | None = None,
+        usage_logger: UsageLogger | None = None,
     ) -> None:
         self.api_key = str(api_key or "").strip()
         self.model = model
         self.temp_dir = Path(temp_dir or tempfile.gettempdir())
         self._client_factory = client_factory
+        self._usage_logger = usage_logger
         self._client: Any | None = None
 
     def _get_client(self) -> Any:
@@ -102,6 +159,14 @@ class GeminiTTSService:
         response = await self._create_interaction(
             build_interaction_payload(self.model, text, style, voice)
         )
+        input_tokens, output_tokens = interaction_token_usage(response)
+        if self._usage_logger is not None:
+            self._usage_logger(
+                self.model,
+                input_tokens,
+                output_tokens,
+                estimate_cost_usd(self.model, input_tokens, output_tokens),
+            )
         data = _audio_data(response)
         try:
             self.temp_dir.mkdir(parents=True, exist_ok=True)
