@@ -48,8 +48,8 @@ def _temp_dir() -> Path:
 @register(
     PLUGIN_NAME,
     "gomico",
-    "直接调用 Gemini 3.8 TTS，支持 voice、style、inline vocal tags 和自动语音回复。",
-    "0.1.0",
+    "直接调用 Gemini 3.8 TTS，支持 voice、style、inline vocal tags 和概率性自动语音回复。",
+    "1.0.0",
 )
 class GeminiTTSPlugin(Star):
     def __init__(self, context: Context, config: Mapping[str, Any]):
